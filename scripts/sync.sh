@@ -88,6 +88,10 @@ find_skills | while read -r skill_dir; do
     if [[ "$DRY_RUN" == true ]]; then
       echo "[DRY-RUN] ln -sfn \"$skill_dir\" \"$dest\""
     else
+      # If destination is an actual physical directory (not a symlink), remove it so ln doesn't nest inside
+      if [[ -d "$dest" && ! -L "$dest" ]]; then
+        rm -rf "$dest"
+      fi
       ln -sfn "$skill_dir" "$dest"
     fi
   done
