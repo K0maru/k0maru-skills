@@ -47,9 +47,9 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-# Find all directories containing SKILL.md (ignoring hidden dirs, .git, etc.)
+# Find all directories containing SKILL.md (following symlinks within repo)
 find_skills() {
-  find "$REPO_ROOT/core" "$REPO_ROOT/vendor" "$REPO_ROOT/external" \
+  find -L "$REPO_ROOT/core" "$REPO_ROOT/vendor" "$REPO_ROOT/external" \
     -type f -name "SKILL.md" 2>/dev/null | while read -r skill_file; do
     dirname "$skill_file"
   done | sort -u
