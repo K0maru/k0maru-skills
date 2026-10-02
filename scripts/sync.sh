@@ -98,6 +98,18 @@ find_skills | while read -r skill_dir; do
   echo "✓ Linked $skill_name ($rel_path)"
 done
 
+# Clean up dangling symlinks in target directories
+for target in "${TARGETS[@]}"; do
+  if [[ -d "$target" && "$DRY_RUN" == false ]]; then
+    for link in "$target"/*; do
+      if [[ -L "$link" && ! -e "$link" ]]; then
+        rm -f "$link"
+        echo "✗ Removed dangling link: $(basename "$link") from $target"
+      fi
+    done
+  fi
+done
+
 echo ""
 echo "Done! All skills linked to:"
 for target in "${TARGETS[@]}"; do
