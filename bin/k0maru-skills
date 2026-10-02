@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+set -e -u -o pipefail
+
+REPO_DIR="/Users/k0maru3/workspace/k0maru-skills"
+
+usage() {
+  cat <<EOF
+k0maru-skills CLI - Manage personal agent skills
+
+Usage:
+  k0maru-skills <command>
+
+Commands:
+  list, ls         List all available skills and their categories
+  sync             Sync/link all skills to all agent environments
+  dir, path        Print the repository directory path
+  open             Open the skills repository in file manager
+  help, -h         Show this help message
+
+Agent Targets:
+  - Universal Agent Skills: ~/.agents/skills/
+  - Antigravity / Gemini:   ~/.gemini/config/skills/
+  - Claude Code:            ~/.claude/skills/
+EOF
+}
+
+cmd="${1:-help}"
+
+case "$cmd" in
+  list|ls)
+    "$REPO_DIR/scripts/sync.sh" --list
+    ;;
+  sync)
+    shift || true
+    "$REPO_DIR/scripts/sync.sh" "$@"
+    ;;
+  dir|path)
+    echo "$REPO_DIR"
+    ;;
+  open)
+    open "$REPO_DIR"
+    ;;
+  help|-h|--help)
+    usage
+    ;;
+  *)
+    echo "Unknown command: $cmd" >&2
+    usage >&2
+    exit 1
+    ;;
+esac

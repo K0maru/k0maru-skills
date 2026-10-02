@@ -32,24 +32,35 @@ k0maru-skills/
 
 ## 🚀 Quick Start
 
-### 1. View Available Skills
+### One-Click Installation & Setup
+
+Run the installer to set permissions, link all skills across your agents, and install the `k0maru-skills` CLI:
 
 ```bash
-./scripts/sync.sh --list
+./install.sh
 ```
 
-### 2. Sync to Agent Environments
-
-Run the sync script to automatically create/update symlinks across all your agent directories (`~/.agents/skills/`, `~/.gemini/config/skills/`, `~/.claude/skills/`):
-
+Or from a new machine:
 ```bash
-./scripts/sync.sh
+git clone git@github.com:k0maru3/k0maru-skills.git ~/workspace/k0maru-skills
+cd ~/workspace/k0maru-skills && ./install.sh
 ```
 
-To preview changes without touching the disk:
+---
+
+## 🛠️ CLI Management (`k0maru-skills`)
+
+After running `install.sh`, you can manage your skills globally from any terminal pane:
 
 ```bash
-./scripts/sync.sh --dry-run
+# List all registered skills and categories
+k0maru-skills list
+
+# Re-sync / update symlinks across all agents
+k0maru-skills sync
+
+# Print repository path
+k0maru-skills path
 ```
 
 ---
