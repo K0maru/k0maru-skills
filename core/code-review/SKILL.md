@@ -1,21 +1,83 @@
 ---
 name: code-review
-description: Terminal-first, interactive code review and guided walkthrough with tuicr and Herdr. Supports AI-guided reading for complex logic, Fowler smell baseline, spec verification, and bi-directional TUI annotation.
+description: Terminal-first, interactive code review and guided walkthrough with OCR delegation, tuicr, and Herdr. Supports OCR smart bundling, AI-guided reading for complex logic, Fowler smell baseline, spec verification, and human decision gate (tuicr review vs direct PR submission).
 ---
 
 # Code Review & Guided Walkthrough
 
 A terminal-native review workflow designed to rebuild developer mental models, prevent vibe coding degradation, and provide deep architectural inspection.
 
-It supports two complementary workflows:
-1. **Interactive Terminal Review (`tuicr` + AI 领读)**: Opens an interactive split-pane TUI where the AI leaves reading guides and the user inspects with Vim keybindings.
-2. **Automated Dual-Axis Audit**: Standards (code smells & conventions) vs. Spec (functional correctness & scope creep).
+Supports three streamlined workflows:
+1. **Delegation Pre-Review & Decision Gate (Default Delivery Flow)**: Uses Open Code Review (OCR) delegation mode for deterministic file clustering and targeted rule audits, presents an executive summary, and actively asks the human Tech Lead how to proceed (submit PR, launch `tuicr`, auto-fix, or approve & merge).
+2. **Interactive Terminal Review (`tuicr` + AI 领读)**: Opens an interactive split-pane TUI (Ghostty + Herdr / tmux) where the AI leaves reading guides and the user inspects with Vim keybindings.
+3. **Formal Dual-Axis Audit**: Standards (code smells & language safety) vs. Spec (functional correctness & scope creep).
 
 ---
 
-## Workflow 1: Interactive Terminal Review & AI 带读 (Default)
+## 🚀 Workflow 1: Delegation Pre-Review & Decision Gate (Recommended Default)
 
-Use this when the user says "review this", "带我读代码", "帮我审查这次改动", or when evaluating recent code.
+Use this immediately after `/implement` completes work on a ticket/feature branch, or when evaluating recent commits before opening/merging a PR.
+
+```mermaid
+flowchart TD
+    Diff["Git Changes / Branch Diff"] --> OCR_Delegate["Step 1: OCR Delegation Pre-scan<br/>(ocr delegate preview & rule)"]
+    OCR_Delegate --> DualAudit["Step 2: Dual-Axis Audit<br/>(Standards & Smells vs Spec & Scope)"]
+    DualAudit --> ExecSummary["Step 3: Executive Summary<br/>(Brief Report in Main Context)"]
+    ExecSummary --> DecisionGate{"Step 4: Interactive Decision Gate<br/>(Ask Human Tech Lead)"}
+
+    DecisionGate -->|"1. Directly Submit PR"| SubmitPR["Open / Update Feature Branch PR"]
+    DecisionGate -->|"2. Deep Walkthrough"| LaunchTuicr["Launch tuicr in Split Pane (Workflow 2)"]
+    DecisionGate -->|"3. Auto-Fix"| AutoFix["Dispatch Subagent to Fix Findings"]
+    DecisionGate -->|"4. Approve & Merge"| MergePR["Mark PR Approved & Merge to dev"]
+```
+
+### Step 1: OCR Delegation Pre-Scan
+Leverage Open Code Review (`ocr`) in delegation mode (no extra API key needed) to extract file topology and domain-specific rules:
+
+```bash
+# 1. Preview reviewable files and change volume
+ocr delegate preview
+
+# 2. Extract resolved review rules for changed files (e.g. Go NPE, Rust lifetime, Svelte reactivity)
+ocr delegate rule <changed-file-1> <changed-file-2> ...
+```
+*Note: If `ocr` is not installed on the system, emulate the grouping and language rules natively.*
+
+### Step 2: Dual-Axis Audit
+Run focused checks against the diff:
+1. **Standards & Smells**:
+   - Apply language-specific rules extracted from `ocr delegate rule`.
+   - Check Fowler Code Smells: Speculative Generality (YAGNI), Feature Envy, Primitive Obsession, Reinventing Stdlib.
+2. **Spec & Scope**:
+   - Verify every requirement in the corresponding issue / ticket DoD is satisfied.
+   - Check for accidental scope creep or unrelated file modifications.
+
+### Step 3: Executive Summary
+Output a concise briefing card into the main conversation (keep it under 15 lines):
+
+```markdown
+### 📋 Code Review 自动化审计简报
+- **审查范围**: `<X>` 个文件 (`+<ins>` / `-<del>` 行)
+- **质量基线**: 单元测试 100% 通过，Linter / Clippy 零 Warning
+- **潜在隐患 / 异味**: 
+  - `path/to/file:L42`: [规则分类] 描述建议（无严重硬伤可标注“暂无高危缺陷”）
+- **规格符合度**: 完全对齐 Ticket `<NN>` 验收标准 (DoD)
+```
+
+### Step 4: Interactive Decision Gate (提问决策门禁)
+Actively ask the human developer for their explicit decision before taking irreversible Git actions:
+
+> **请确认下一步动作：**
+> 1. **(推荐) 确认无误，直接提交 PR**：由 Bot 在特性分支上提交并创建 Pull Request；
+> 2. **进入 `tuicr` 终端深入交互带读**：在终端右侧分屏启动 `tuicr`，逐行阅读 AI 领读铺设的路标；
+> 3. **自动修复潜在隐患**：派发 Worker Subagent 针对上述发现的问题进行针对性修复并重新运行测试；
+> 4. **(针对已有 PR) 审查通过，批准并合入 `dev`**：标记 PR Review Approved 并完成合并。
+
+---
+
+## 🖥️ Workflow 2: Interactive Terminal Review & AI 带读 (tuicr + Herdr)
+
+Use this when the user chooses Option 2 in the Decision Gate, or explicitly says "review this", "带我读代码", or "open tuicr".
 
 ### Step 1: Detect Terminal & Split Pane
 Check the environment:
@@ -35,7 +97,7 @@ tuicr review add --repo /path/to/repo --session <slug> \
 
 **What to annotate:**
 1. **宏观数据流 (Data Flow)**: Mark where inputs enter and where key state transformations happen.
-2. **解构黑魔法 (De-sugaring)**: For dense or unfamiliar syntax (Rust ownership patterns, advanced TypeScript conditional types, complex regex, subtle concurrency locks), write a 1-sentence plain explanation of what the logic translates to.
+2. **解构黑魔法 (De-sugaring)**: For dense or unfamiliar syntax (Rust ownership patterns, TypeScript conditional types, complex regex, subtle concurrency locks), write a 1-sentence plain explanation of what the logic translates to.
 3. **隐患与防御点 (Edge Cases / Fragile Logic)**: Mark lines that require extra scrutiny (null checks, timeouts, race conditions).
 4. **潜在异味 (Smells / Over-engineering)**: Mark with `--type suggestion` or `--type issue` if code violates YAGNI or reimplements standard library utilities.
 
@@ -56,13 +118,12 @@ tuicr review comments --repo /path/to/repo --session <slug>
 
 ---
 
-## Workflow 2: Automated Dual-Axis Audit
+## 📑 Workflow 3: Automated Dual-Axis Audit (PR / Milestone Report)
 
-Use when the user asks for a formal, non-interactive audit or PR comparison against a base commit (`HEAD~N`, `main`, or PR).
+Use when generating a formal markdown audit report against a base commit (`HEAD~N`, `main`, or PR).
 
 ### Axis 1: Standards & Smell Baseline
 Check against repo documentation (`CODING_STANDARDS.md`, `CONTRIBUTING.md`) PLUS Fowler's Code Smell baseline:
-
 - **Mysterious Name**: Names that obscure purpose or disguise side-effects.
 - **Duplicated Code**: Identical or copy-pasted structures across hunks.
 - **Feature Envy**: Logic that reaches into another module's internals rather than placing behavior with data.
@@ -78,7 +139,6 @@ Check against originating prompt, issue, or spec:
 3. **Flawed Implementation**: Logic that compiles/runs but fails in edge cases or misses error branches.
 
 ### Report Format
-Present findings clearly:
 ```markdown
 ## Standards & Code Health
 - `path/to/file:L42` [Smell Name]: Description and recommended inline fix.

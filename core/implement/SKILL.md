@@ -32,6 +32,7 @@ Once the subagent finishes and reports back:
 2. Check for any unexpected scope creep or file modifications (`git status`, `git diff --stat`).
 3. If multiple sequential tickets exist, proceed to dispatch the next ticket's subagent.
 
-### Step 4: Hand Off to Review
+### Step 4: Hand Off to Review & Decision Gate
 Once all ticket implementations are complete:
-- Invoke `/code-review` to open `tuicr` in a split pane (Herdr / tmux) with pre-populated AI guided reading notes, allowing the human to inspect the subagent's changes.
+- Invoke `/code-review` to trigger OCR delegation pre-review and present an executive summary.
+- Prompt the human Tech Lead to choose next action: submit PR directly, launch interactive `tuicr` walkthrough in a split pane, or execute auto-fixes.
