@@ -56,9 +56,14 @@ k0maru-skills/
 
 ## 🌟 Key Custom Workflow Highlights
 
-### 1. `core/code-review` (Terminal Review & AI 领读)
-- **Automatic Split Detection**: Detects active Herdr (`HERDR_ENV=1`) or tmux session and automatically spawns a `tuicr` review pane on the right.
-- **AI 领读铺路标 (Guided Walkthrough)**: Before the human inspects unfamiliar code, the AI writes inline `note` annotations into `tuicr` highlighting:
+### 1. `core/code-review` (OCR Delegation & Terminal Review)
+- **OCR 委托模式智能预审 (Delegation Pre-Scan)**: Invokes `ocr delegate preview` and `ocr delegate rule` to extract module topology and language-specific rules (Go NPE, Rust lifetime, Svelte reactivity) with zero extra API key cost.
+- **人机决策门禁 (Interactive Decision Gate)**: Produces an executive summary (tests, scope, smells) and prompts the human Tech Lead to choose:
+  1. *(Recommended)* Directly submit/update PR.
+  2. Launch `tuicr` in a split pane for deep guided walkthrough.
+  3. Dispatch subagents to auto-fix findings.
+  4. Approve and merge PR to `dev`.
+- **AI 领读铺路标 (Guided Walkthrough)**: When entering `tuicr`, the AI annotates:
   - 🌊 **宏观数据流 (Data Flow)**: Entry points, key transformations, state mutations.
   - 🔍 **解构黑魔法 (De-sugaring)**: Translates dense/esoteric syntax into plain, readable equivalents.
   - 🛡️ **脆弱防御点 (Fragile Logic)**: Highlights edge cases, missing null-checks, or race conditions.
@@ -67,7 +72,7 @@ k0maru-skills/
 ### 2. `core/implement` (Subagent Delegation)
 - **Context Isolation**: Instead of muddying the main orchestrator's conversation with compilation errors and diffs, work is delegated to isolated subagents.
 - **Strict Execution Contract**: Mandates TDD at interface seams, clean typechecking, and targeted commits.
-- **Auto-Review Handoff**: Chains directly into `code-review` in `tuicr` upon completion.
+- **Auto-Review Handoff**: Chains directly into `code-review` delegation pre-scan and human decision gate upon completion.
 
 ### 3. `core/grilling` (Anti-Vibe-Coding Stress Test)
 - Replaces disjointed stub skills with a relentless, frontier-based architectural interview.
