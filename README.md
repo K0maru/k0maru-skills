@@ -24,7 +24,8 @@ k0maru-skills/
 ├── core/                  # 🌟 Original & Heavily Custom-Crafted Workflows
 │   ├── code-review/       # Terminal-native tuicr review + AI guided reading (铺路标)
 │   ├── implement/         # Subagent-delegated ticket execution + auto-review handoff
-│   └── grilling/          # Architectural stress-testing with ADR persistence
+│   ├── grilling/          # Architectural stress-testing with ADR persistence
+│   └── init-agents/       # Standardized AGENTS.md constitution generator with desensitized Bot attribution
 │
 ├── vendor/                # 🛠️ Curated & Adapted Open-Source Skills
 │   └── mattpocock/        # Filtered from mattpocock/skills (irrelevant teaching skills removed)
@@ -72,6 +73,11 @@ k0maru-skills/
 - Replaces disjointed stub skills with a relentless, frontier-based architectural interview.
 - Forces clarification of failure modes, boundary contracts, and YAGNI reductions before coding.
 - Offers automatic persistence of key architectural decisions to ADRs or `CONTEXT.md`.
+
+### 4. `core/init-agents` (Workflow Constitution & Bot Desensitization)
+- **Automatic Stack Detection**: Inspects git branches, linters (`clippy`/`biome`/`ruff`), package managers, and test suites.
+- **Battle-Tested 7-Module Architecture**: Scaffolds `AGENTS.md` with Master-Worker isolation, `/to-spec ➔ /to-tickets ➔ /implement` loop, dual-trunk git branching, and non-negotiable project iron laws.
+- **Strict Bot Desensitization**: Ensures public configs never leak private Bot User IDs or App IDs, dynamically binding to local `git config --get agent.coauthor`.
 
 ---
 
