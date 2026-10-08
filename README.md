@@ -81,7 +81,7 @@ k0maru-skills/
 
 ### 4. `core/init-agents` (Workflow Constitution & Bot Desensitization)
 - **Automatic Stack Detection**: Inspects git branches, linters (`clippy`/`biome`/`ruff`), package managers, and test suites.
-- **Battle-Tested 7-Module Architecture**: Scaffolds `AGENTS.md` with Master-Worker isolation, `/to-spec ➔ /to-tickets ➔ /implement` loop, dual-trunk git branching, and non-negotiable project iron laws.
+- **Battle-Tested 7-Module Architecture**: Scaffolds `AGENTS.md` with Master-Worker isolation, `/to-spec ➔ /to-tickets ➔ /implement` loop, dual-trunk git branching (`Squash & Merge` into `dev`, `Merge Commit` into `main`), and non-negotiable project iron laws.
 - **Strict Bot Desensitization**: Ensures public configs never leak private Bot User IDs or App IDs, dynamically binding to local `git config --get agent.coauthor`.
 
 ---

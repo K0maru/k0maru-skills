@@ -24,7 +24,7 @@ Examine the target repository root to determine the existing toolchain:
 
 1. **Git Status**:
    - Check if repository is initialized: `git status` or `git rev-parse --is-inside-work-tree`.
-   - Check default branches (`main`, `dev`, `master`).
+   - Check default branches (`main`, `dev`, `master`) and enforce dual-trunk promotion: **Squash & Merge** into `dev` (linear micro-steps) and **Merge Commit** (`--no-ff`) into `main` (milestone integrity).
 2. **Technology Stack & Package Manager**:
    - Rust: `Cargo.toml` ➔ `cargo clippy -- -D warnings`, `cargo fmt --check`, `cargo test`
    - TypeScript / Node / Svelte: `package.json` ➔ `npm run lint` / `pnpm check` / `biome check`, `vitest` / `jest`
