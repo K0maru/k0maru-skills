@@ -1,52 +1,52 @@
-# CONTEXT.md — {{PROJECT_NAME}} 领域术语与系统上下文字典
+# CONTEXT.md — {{PROJECT_NAME}} Domain Terminology & System Context
 
-本文档为 `{{PROJECT_NAME}}` 建立统一的领域模型语言（Ubiquitous Language）与架构上下文边界，避免在跨模块设计或与 AI 协同过程中产生沟通歧义。
-
----
-
-## 🏛️ 1. 系统定位与核心愿景 (System Vision)
-
-- **定位描述**：{{PROJECT_DESCRIPTION}}
-- **核心业务价值**：解决哪些关键工程或业务痛点，为什么该架构不能被现有方案简单取代。
+This document establishes the ubiquitous language, architectural seams, and domain invariants for `{{PROJECT_NAME}}` to eliminate communication ambiguity between human engineers and AI agents.
 
 ---
 
-## 📖 2. 领域核心术语表 (Domain Vocabulary)
+## 🏛️ 1. System Vision & Scope
 
-| 术语名称 | 英文标识 | 严格业务定义 | 常见反模式 / 误区辨析 |
+- **Core Vision**: {{PROJECT_DESCRIPTION}}
+- **Value Proposition**: Key problems solved and why existing alternatives are insufficient.
+
+---
+
+## 📖 2. Domain Vocabulary
+
+| Term | Symbol / Type | Authoritative Definition | Anti-Patterns & Common Misconceptions |
 | :--- | :--- | :--- | :--- |
-| **示例实体** | `ExampleEntity` | 系统的核心聚合根/实体对象，持有状态与不变式 | 严禁与外部传输 DTO 混淆 |
-| **示例状态** | `LifecycleState` | 状态机所处的阶段流转（如 PENDING / ACTIVE / CLOSED） | 避免使用魔法数字或未验证的自由字符串 |
+| **Example Entity** | `ExampleEntity` | Core aggregate root / domain entity holding invariants | Never confuse with external transit DTOs |
+| **Lifecycle State** | `LifecycleState` | Explicit state machine phases (e.g. `PENDING`, `ACTIVE`, `CLOSED`) | Avoid unvalidated strings or magic numbers |
 
 ---
 
-## 🛡️ 3. 架构接缝与模块边界 (Architecture Seams)
+## 🛡️ 3. Architecture Seams & Invariants
 
 ```mermaid
 flowchart TD
-    subgraph CoreDomain ["核心领域层 (Invariants & Rules)"]
-        A["领域模型 / 实体"]
+    subgraph CoreDomain ["Core Domain (Invariants & Rules)"]
+        A["Domain Models / State Machine"]
     end
 
-    subgraph ServiceLayer ["应用与编排层 (Coordinator / Engine)"]
-        B["最高测试接缝 (Highest Testing Seam)"]
+    subgraph ServiceLayer ["Service & Coordination Layer"]
+        B["Highest Testing Seam (Coordinator / Engine)"]
     end
 
-    subgraph Adapters ["外部适配层 (I/O, CLI, Storage, Web)"]
-        C["外部依赖 / 驱动"]
+    subgraph Adapters ["External Adapters (I/O, CLI, Storage, Web)"]
+        C["External Clients / Drivers"]
     end
 
     C --> B
     B --> A
 ```
 
-- **核心不变量**：哪些业务状态在任何并发或异常情况下都必须绝对守恒；
-- **最高测试接缝**：系统最理想的回归测试切入点（直接测试该层即可覆盖完整业务语义，且无需 Mock 内部私有细节）。
+- **Domain Invariants**: States and invariants that must hold under all concurrency and error conditions.
+- **Highest Testing Seam**: Primary behavioral verification boundary (test whole workflows through this seam with zero brittle private mocks).
 
 ---
 
-## 📚 4. 关键参考与规范文档 (Reference Links)
+## 📚 4. Reference Pointers
 
-- 需求规格：[`docs/SPEC.md`](docs/SPEC.md)
-- 工作流规约：[`AGENTS.md`](AGENTS.md)
-- 架构决策：`docs/adr/`
+- Technical Specifications: [`docs/SPEC.md`](docs/SPEC.md)
+- Agent Workflow Constitution: [`AGENTS.md`](AGENTS.md)
+- Architecture Decision Records: `docs/adr/`

@@ -1,143 +1,116 @@
-# AGENTS.md — {{PROJECT_NAME}} AI 协同研发工作流规约
+# AGENTS.md — {{PROJECT_NAME}} Engineering & Workflow Constitution
 
-本文件定义了 AI 智能体（Antigravity、Claude Code、Cursor、Windsurf 等）在 `{{PROJECT_NAME}}` 仓库协同开发的核心架构准则、行为纪律与工程工作流契约。
-
----
-
-## 🧭 1. 上下文指针与系统字典 (Context Pointers & Domain Glossary)
-
-在修改任何核心模块或业务逻辑前，优先查阅并遵守以下权威真理源（Sources of Truth）：
-- **领域术语字典**: [`CONTEXT.md`](CONTEXT.md)（标准化领域概念定义与上下文对齐，消除沟通歧义）。
-- **技术规格说明**: [`docs/SPEC.md`](docs/SPEC.md) 或 `.scratch/{{PROJECT_NAME}}/spec.md`（系统架构指标、量化假设与接口契约）。
-- **架构决策记录**: `docs/adr/`（记录重要技术选型、架构权衡与历史原因）。
+This document defines the authoritative architecture, engineering discipline, and collaboration standards for AI agents (Antigravity, Claude Code, Cursor, Windsurf, etc.) operating on `{{PROJECT_NAME}}`.
 
 ---
 
-## 🎯 2. 核心交付流水线 (Standard Delivery Loop)
+## 🧭 1. Context Pointers & System Glossary
 
-本项目严格执行规格驱动与测试先行流程，严禁随缘编码（No Vibe Coding）。所有功能迭代、组件开发或重构必须严格遵循以下阶段：
+Before modifying core modules or business logic, consult these primary sources of truth:
+- **Domain Glossary**: [`CONTEXT.md`](CONTEXT.md) (Ubiquitous language, architecture seams, and domain invariants).
+- **Technical Specifications**: [`docs/SPEC.md`](docs/SPEC.md) or `.scratch/{{PROJECT_NAME}}/spec.md` (System specs, quantitative assumptions, and API contracts).
+- **Architecture Decisions**: `docs/adr/` (Architectural decision records and technical trade-offs).
+
+---
+
+## 🎯 2. Delivery Loop & Dual-Tier Issue Tracking
+
+Follow the strict specification-first delivery pipeline. No vibe coding.
 
 ```mermaid
 flowchart LR
-    S1["1. /to-spec<br/>(规格优先 · 方案定义)"] --> S2["2. /to-tickets<br/>(原子拆解 · 依赖拓扑)"]
-    S2 --> S3["3. /implement<br/>(TDD驱动 · 干净上下文)"]
-    S3 --> S4["4. Review & 验证<br/>(规范/逻辑双轨审查)"]
-    S4 --> S5["5. 汇报人类 Tech Lead<br/>(本地体验 ➔ 确认合入)"]
+    S1["1. /to-spec<br/>(Contract & Boundary)"] --> S2["2. /to-tickets<br/>(Local DAG & Tracer-bullets)"]
+    S2 --> S3["3. /implement<br/>(TDD & Smart Zone)"]
+    S3 --> S4["4. /code-review<br/>(OCR Scan & Decision Gate)"]
+    S4 --> S5["5. Tech Lead Review<br/>(Verify ➔ Merge Gate)"]
 ```
 
-1. **`/to-spec`（规格先行）**：
-   - 明确接口定义（API / Props / Types）、异常流与边界约束；
-   - 梳理清晰的可测试验收标准（Definition of Done, DoD）。
-2. **`/to-tickets`（原子任务拆解）**：
-   - 将规格拆解为纵向穿透型工单（Tracer-bullet Tickets），避免横向切层拖延反馈；
-   - 明确声明工单间的阻断依赖关系（`Blocked by`），形成确定性执行 DAG。
-3. **`/implement`（测试驱动落地）**：
-   - 在独立的特性分支中实施，严格遵循测试驱动开发（TDD：红 ➔ 绿 ➔ 重构）；
-   - 先写失败测试用例，再写最小实现代码，最后消除坏味道。
-4. **`/code-review`（规范审查与人机决策门禁）**：
-   - 自动化预审：采用 OCR 委托模式提取变更拓扑与专项规则，执行 Standards（语言安全与异味）与 Spec（需求符合度）双轨审查；
-   - 提问决策门禁：向人类 Tech Lead 输出简明审计简报，主动征询下一步指示（1. 确认无误直接提交 PR；2. 启动 `tuicr` 终端深入带读；3. 自动修复；4. 批准 PR 合入）。
+1. **`/to-spec`**: Define API contracts, failure modes, boundary conditions, and testable Acceptance Criteria (DoD).
+2. **`/to-tickets` & Dual-Tier Tracking**:
+   - **L1 Macro Requirements (GitHub Issues)**: High-level features, bug reports, and epics live as GitHub Issues (`#NN`).
+   - **L2 Micro Implementation (Local Tickets)**: Break specs into local tracer-bullet markdown tickets under `.scratch/{{PROJECT_NAME}}/issues/<NN>-<slug>.md` (or `docs/spec/`) with explicit `Blocked by` DAG dependencies.
+   - **PR Linkage**: Completed feature PRs must reference the macro issue via `Closes #NN`.
+3. **`/implement` (TDD in Smart Zone)**: Implement in isolated feature branches (`feat/*`). Write failing tests first, implement minimal passing code, then refactor.
+4. **`/code-review` & Human Decision Gate**:
+   - Automated pre-scan via OCR delegation mode (`ocr delegate preview / rule`) covering Standards (Fowler smells & language safety) and Spec (DoD coverage).
+   - Output executive briefing (<=15 lines) and prompt the human Tech Lead for the next action: (1) Directly submit PR, (2) Launch interactive `tuicr` guided walkthrough, (3) Auto-fix findings, or (4) Approve & merge PR.
 
 ---
 
-## 🤖 3. 主从 Agent 编排与上下文卫生 (Master-Worker Model & Context Hygiene)
+## 🤖 3. Master-Worker Orchestration & Context Hygiene
 
-为防止单一会话长程上下文累积导致注意力稀释与“降智”现象，本项目严格遵循 Master-Worker 多代理编排架构：
+Prevent context degradation and long-session amnesia (>100k tokens) through role separation:
 
-1. **主 Orchestrator Agent 职责（架构师与调度者）**：
-   - **行为铁律：主 Agent 严禁在主会话中直接手写大段业务代码**；
-   - 负责需求澄清、主动盘问（Grilling）、推导工单依赖图（Tickets DAG）；
-   - 负责任务派发、进度汇总与向人类汇报交付物。
-2. **从 Worker Subagent 职责（执行工程师）**：
-   - 通过 `invoke_subagent` 或在干净的新会话中启动，享受 0-Token 纯净上下文环境（Smart Zone）；
-   - 单一子代理只专注单一工单，单任务闭环后提交代码；
-   - 完成实现并通过所有静态检查与测试后，向主 Agent 汇报并销毁临时上下文。
-3. **人类开发者角色**：
-   - 担任 **Tech Lead 与首席架构师**，负责前置决策一锤定音与最终合并门禁把关。
+1. **Master Orchestrator Agent**:
+   - **Iron Law: Never write large blocks of production code directly in the main session.**
+   - Focus on requirement clarification, architectural grilling, tickets DAG generation, and reviewing subagent deliverables.
+2. **Worker Subagent (Implementor)**:
+   - Spawn in clean 0-token context (`invoke_subagent` or fresh session).
+   - Own one ticket at a time, execute TDD, run verification, commit, and exit.
+3. **Human Engineer**:
+   - Acts as **Tech Lead & Chief Architect** holding final approval and merge gates.
 
 ---
 
-## 🌿 4. Git 分支管理与防冒进发版纪律 (Git Promotion Discipline)
+## 🌿 4. Git Branching & Promotion Discipline
 
-本项目采用**「双主干 + 隔离特性分支」**模型，严格执行确定性的合并策略，杜绝污染主干历史与冒进发版：
+Enforce dual-trunk isolation with deterministic merge strategies:
 
-1. **`main` 分支（稳定发布主干）**：
-   - 绝对稳定，代表生产可发布状态；
-   - **严禁直接 push**；仅接受来自 `dev` 的阶段性里程碑 PR 或打语义化 Release Tag（如 `v1.0.0`）；
-   - **合并策略（Merge Commit）**：从 `dev` 合入 `main` 时，**必须使用标准 Merge Commit（创建合并提交，`git merge --no-ff` / GitHub "Create a merge commit"）**，完整保留 `dev` 上的阶段性里程碑历史拓扑与版本演进脉络，严禁对发布 PR 使用 Squash。
-2. **`dev` 分支（日常开发与集成主干）**：
-   - 所有日常特性工单与缺陷修复的合并目标；
-   - 必须随时保持全量测试全绿、编译无 Warning；
-   - **合并策略（Squash & Merge）**：特性分支合入 `dev` 时，**必须使用 Squash & Merge（扁平化压缩合并）**，将特性分支上的所有微步骤（TDD 红绿循环、临时 WIP commit）压缩为一个整洁语义化的单次提交（如 `feat(scope): 详细说明`），确保 `dev` 主干的提交历史线性且干净。
-3. **特性工作分支（短周期隔离）**：
-   - 命名规范：`feat/<ticket-or-slug>` 或 `fix/<issue-name>`；
-   - 生命周期：从最新 `dev` 检出 ➔ 独立完成 TDD 与审查 ➔ 提交 PR 并以 **Squash & Merge** 方式合入 `dev` ➔ 自动删除特性分支。
-4. **特性验收与发版确认纪律（严禁擅自合并到 main / 发版）**：
-   - **向人类汇报成果**：工单完成后，智能体**必须先停下来向人类汇报**开发成果、测试报告与本地实测指南；
-   - **人类主动体验机制**：新特性先停留在 `dev`（或特性分支）供人类开发者在本地环境进行实测验证、交互体验；
-   - **人类明确确认后方可合入 main**：只有在人类亲自体验并明确指示（如“可以合入 main”、“提 PR 发版”、“确认发版”）后，方可启动向 `main` 提发布 PR（使用 Merge Commit 策略）、打 Release Tag 与推送发布流程。
+1. **`main` (Production Release Trunk)**:
+   - Absolutely stable. **Direct push strictly forbidden.**
+   - Accepts only milestone PRs from `dev` or signed semantic release tags (e.g. `v1.0.0`).
+   - **Merge Strategy (Merge Commit)**: Merging `dev` into `main` MUST use standard merge commits (`git merge --no-ff` / GitHub "Create a merge commit") to preserve milestone history and sprint topology. Never squash release PRs.
+2. **`dev` (Integration Trunk)**:
+   - Active integration target for all features and fixes. Must remain 100% green at all times.
+   - **Merge Strategy (Squash & Merge)**: Merging feature branches into `dev` MUST use Squash & Merge to collapse iterative TDD micro-commits into a single clean semantic commit (`feat(scope): description`), keeping `dev` history linear.
+3. **Feature Branches (`feat/*`, `fix/*`)**:
+   - Branch off latest `dev`, implement in isolation, open PR to `dev` with Squash & Merge, then delete branch.
+4. **Human Verification Gate (Anti-Rushing Rule)**:
+   - Never auto-merge into `main` or cut releases without explicit human sign-off. Report results and let the human test on `dev` first.
 
 ---
 
-## 🔏 5. 提交与 PR 身份规约 (Bot Attribution & Identity Iron Law)
+## 🔏 5. Bot Attribution & Desensitization Iron Law
 
-为确保版本追溯透明并严格保护人类工程师的独立贡献图谱，所有提交与 PR 必须遵循以下脱敏协议：
-
-1. **动态本地探测原则（公共规约严格脱敏）**：
-   - 公共仓库中的 `AGENTS.md` **绝不硬编码任何私有 Bot 身份、ID 或个人邮箱**；
-   - AI 代理在生成提交前，必须动态探测当前本地仓库配置：
+1. **Public Desensitization**:
+   - Never hardcode personal bot names, App IDs, user IDs, or private emails into repository files.
+   - Always probe the local environment dynamically:
      ```bash
      git config --get agent.coauthor
      ```
-2. **核心原理：Bot User ID vs App ID**：
-   - GitHub App 虚拟用户包含两个不同 ID：
-     - `App ID`（仅用于应用管理与头像 URL，如 `<bot_app_id>`）；
-     - `Bot User ID`（Git 数据库绑定的真实数字 ID，如 `<bot_user_id>`）；
-   - Commit 映射邮箱必须使用真实的 **Bot User ID**：
+2. **Bot User ID Mapping**:
+   - GitHub App bots require the numerical **Bot User ID** (from `api.github.com/users/<bot-name>[bot]`), NOT the App ID:
      `<bot_user_id>+<bot-name>[bot]@users.noreply.github.com`
-     （若使用 App ID 则 GitHub 无法识别，会导致双头像角标丢失）。
-3. **双模式提交支持**：
-   - **模式 A（默认：人类为主作者，Bot 共同署名）**：
-     Git Author 为开发者个人邮箱，Commit Message 末尾空一行追加该署名 trailer：
-     ```git
-     <type>(<scope>): <简要动宾描述>
-
-     <详细说明与改动要点>
-
-     Co-authored-by: <bot-name>[bot] <<bot_user_id>+<bot-name>[bot]@users.noreply.github.com>
-     ```
-     （GitHub 将在 Commit 列表展示双头像重叠角标，人类贡献图完整保留）。
-   - **模式 B（子智能体独立作业：Bot 作为第一主作者）**：
-     在完全自主派发的子代理任务中，若开发者明确要求以 Bot 为主作者提交：
-     ```bash
-     git commit --author="<bot-name>[bot] <<bot_user_id>+<bot-name>[bot]@users.noreply.github.com>" -m "..."
-     ```
-   - **未配置情况（开源通用贡献者）**：
-     若 `git config --get agent.coauthor` 为空，按当前本地开发者身份正常提交，不强加任何第三方机器人署名。
-4. **Pull Request 规范**：
-   - PR 标题建议包含清晰的语义化前缀（如 `feat(core): ...`）；
-   - PR 正文中必须包含清晰的改动清单、相关 Issue 编号以及测试验证证据。
+3. **Dual-Mode Attribution**:
+   - **Mode A (Default: Human Author + Bot Co-Author)**: Append trailer preceded by a blank line:
+     `Co-authored-by: <bot-name>[bot] <<bot_user_id>+<bot-name>[bot]@users.noreply.github.com>`
+   - **Mode B (Subagent Author)**: Explicit `git commit --author="<bot-name>[bot] <<bot_user_id>+<bot-name>[bot]@users.noreply.github.com>"` when designated.
+   - If unconfigured, commit normally under local developer identity without third-party trailers.
 
 ---
 
-## 📐 6. 代码与工程质量基线 (Quality Baseline & Testing Seam)
+## 📐 6. Quality Baselines & Testing Seams
 
-1. **技术栈与工具链**：
-   - 核心语言与版本：`{{TECH_STACK_VERSION}}`
-   - 包管理器 / 构建工具：`{{PACKAGE_MANAGER}}`
-2. **代码风格与静态检查门禁（Zero-Warning）**：
-   - 格式化检查命令：`{{FORMAT_COMMAND}}`
-   - 静态分析 / Lint 命令：`{{LINT_COMMAND}}`
-   - 要求：所有提交必须通过格式化与 Lint 检查，警告（Warnings）零容忍。
-3. **测试驱动与最高接缝测试（Highest Testing Seam）**：
-   - 测试执行命令：`{{TEST_COMMAND}}`
-   - **测试接缝契约**：优先在系统最高公开抽象接缝（如 CLI 入口、API Coordinator 或模块主接口）进行行为断言，减少针对内部临时私有方法的脆弱 Mock。
-   - **环境隔离**：单元与集成测试严禁读写外部真实生产环境或污染真实持久化数据，必须使用临时目录或隔离夹具（Fixtures）。
+1. **Toolchain & Commands**:
+   - Language / Runtime: `{{TECH_STACK_VERSION}}`
+   - Package Manager: `{{PACKAGE_MANAGER}}`
+   - Formatter: `{{FORMAT_COMMAND}}`
+   - Linter (Zero-Warning Gate): `{{LINT_COMMAND}}`
+   - Test Suite: `{{TEST_COMMAND}}`
+2. **Highest Observable Testing Seam**:
+   - Write tests against the highest public abstraction seam (CLI, coordinator, service boundaries) asserting on external observables rather than brittle internal mocks.
+3. **Zero Synthetic Fallback & Truth Invariants**:
+   - Never fabricate synthetic mock data (e.g. fake sine waves or dummy bypasses) just to make tests green.
+   - If external dependencies or datasets are unavailable, fail fast with typed errors. Test real boundaries only.
 
 ---
 
-## ⚡ 7. 项目专属不可妥协铁律 (Non-Negotiable Project Iron Laws)
+## ⚡ 7. Domain Invariants & Anti-Hardcoding Rules
 
-以下是 `{{PROJECT_NAME}}` 业务与架构维度的核心约束，任何代码修改均不得违背：
+1. **Single Source of Truth (SSOT)**:
+   - Derive configurations and states from a single authoritative source. Zero duplication of domain schemas or models.
+2. **Zero Magic Numbers & Hardcoded Blacklists**:
+   - Never hardcode arbitrary thresholds or static entity blacklists into business logic. Express constraints via dynamic safety envelopes, algorithmic bounds, or centralized configurations.
+3. **Project-Specific Non-Negotiables**:
 
 {{PROJECT_IRON_LAWS}}
