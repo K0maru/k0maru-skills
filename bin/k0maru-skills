@@ -21,7 +21,8 @@ Usage:
 Commands:
   list, ls         List all available skills and their categories
   sync             Sync/link all skills to all agent environments
-  doctor, check    Check external dependencies and run health checks
+  doctor, check    Check external dependencies and health status (-i for interactive TUI)
+  install-deps     Launch interactive TUI to select and install companion packages
   dir, path        Print the repository directory path
   open             Open the skills repository in file manager
   help, -h         Show this help message
@@ -44,11 +45,16 @@ case "$cmd" in
     "$REPO_DIR/scripts/sync.sh" "$@"
     ;;
   doctor|check)
-    "$REPO_DIR/scripts/check-deps.sh"
+    shift || true
+    "$REPO_DIR/scripts/check-deps.sh" "$@"
+    ;;
+  install-deps|install)
+    "$REPO_DIR/scripts/check-deps.sh" -i
     ;;
   dir|path)
     echo "$REPO_DIR"
     ;;
+
   open)
     open "$REPO_DIR"
     ;;

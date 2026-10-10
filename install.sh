@@ -58,13 +58,15 @@ mkdir -p "$LOCAL_BIN"
 ln -sfn "$REPO_ROOT/bin/k0maru-skills" "$LOCAL_BIN/k0maru-skills"
 echo -e "\n${GREEN}✓ Installed CLI shortcut: ${BOLD}$LOCAL_BIN/k0maru-skills${NC}"
 
-# 4. Check external tool dependencies
-"$REPO_ROOT/scripts/check-deps.sh"
+# 4. Check external tool dependencies (with interactive prompt if in terminal)
+"$REPO_ROOT/scripts/check-deps.sh" --prompt-install
 
 echo -e "\n${GREEN}${BOLD}🎉 Installation and Synchronization Complete!${NC}"
 echo -e "You can now manage your skills from anywhere in your terminal:"
-echo -e "  ${BOLD}k0maru-skills list${NC}     - View all registered skills"
-echo -e "  ${BOLD}k0maru-skills doctor${NC}   - Check external CLI dependencies"
-echo -e "  ${BOLD}k0maru-skills sync${NC}     - Re-sync all symlinks"
-echo -e "  ${BOLD}k0maru-skills path${NC}     - Print repo location\n"
+echo -e "  ${BOLD}k0maru-skills list${NC}         - View all registered skills"
+echo -e "  ${BOLD}k0maru-skills doctor${NC}       - Check external CLI dependencies (-i for TUI)"
+echo -e "  ${BOLD}k0maru-skills install-deps${NC} - Interactive package installer TUI"
+echo -e "  ${BOLD}k0maru-skills sync${NC}         - Re-sync all symlinks"
+echo -e "  ${BOLD}k0maru-skills path${NC}         - Print repo location\n"
+
 

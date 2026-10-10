@@ -112,8 +112,11 @@ After running `install.sh`, you can manage your skills globally from any termina
 # List all registered skills and their originating categories
 k0maru-skills list
 
-# Run health check and inspect external CLI dependencies (ocr, tuicr, tmux/herdr, matplotlib)
+# Run health check and inspect external CLI dependencies
 k0maru-skills doctor
+
+# Launch RTK-style interactive TUI to select and batch-install companion packages
+k0maru-skills install-deps   # or: k0maru-skills doctor -i
 
 # Re-synchronize and clean up dangling symlinks across all agent environments
 k0maru-skills sync
