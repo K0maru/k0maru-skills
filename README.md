@@ -112,12 +112,27 @@ After running `install.sh`, you can manage your skills globally from any termina
 # List all registered skills and their originating categories
 k0maru-skills list
 
+# Run health check and inspect external CLI dependencies (ocr, tuicr, tmux/herdr, matplotlib)
+k0maru-skills doctor
+
 # Re-synchronize and clean up dangling symlinks across all agent environments
 k0maru-skills sync
 
 # Print repository path
 k0maru-skills path
 ```
+
+### 📦 External Companion Tools & Dependencies
+
+Certain skills provide enhanced capabilities when their companion CLI tools are installed. The installer automatically runs `k0maru-skills doctor` to report status:
+
+| Skill | Companion Tool | Importance | Install Command |
+|---|---|---|---|
+| `core/code-review` | `ocr` ([Open Code Review](https://github.com/alibaba/open-code-review)) | Recommended | `npm install -g @alibaba-group/open-code-review` |
+| `core/code-review`, `external/tuicr` | `tuicr` ([tuicr TUI](https://github.com/agavra/tuicr)) | Recommended | `brew install tuicr` *(or `cargo install tuicr`)* |
+| `external/tuicr`, `external/herdr` | `herdr` / `tmux` / `zellij` | Recommended | `brew install tmux` *(or `brew install zellij`)* |
+| `external/scientific-figure-making` | `matplotlib`, `numpy` | Required (for plotting) | `pip3 install matplotlib numpy` *(or `uv pip install ...`)* |
+
 
 ---
 

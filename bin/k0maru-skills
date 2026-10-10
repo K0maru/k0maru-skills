@@ -1,7 +1,15 @@
 #!/usr/bin/env bash
 set -e -u -o pipefail
 
-REPO_DIR="/Users/k0maru3/workspace/k0maru-skills"
+# Resolve canonical script location (traversing symlinks)
+SOURCE="${BASH_SOURCE[0]}"
+while [[ -h "$SOURCE" ]]; do
+  DIR="$(cd -P "$(dirname "$SOURCE")" && pwd)"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ "$SOURCE" != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+SCRIPT_DIR="$(cd -P "$(dirname "$SOURCE")" && pwd)"
+REPO_DIR="$(cd -P "$SCRIPT_DIR/.." && pwd)"
 
 usage() {
   cat <<EOF
@@ -13,6 +21,7 @@ Usage:
 Commands:
   list, ls         List all available skills and their categories
   sync             Sync/link all skills to all agent environments
+  doctor, check    Check external dependencies and run health checks
   dir, path        Print the repository directory path
   open             Open the skills repository in file manager
   help, -h         Show this help message
@@ -33,6 +42,9 @@ case "$cmd" in
   sync)
     shift || true
     "$REPO_DIR/scripts/sync.sh" "$@"
+    ;;
+  doctor|check)
+    "$REPO_DIR/scripts/check-deps.sh"
     ;;
   dir|path)
     echo "$REPO_DIR"
