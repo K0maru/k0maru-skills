@@ -136,8 +136,40 @@ Certain skills provide enhanced capabilities when their companion CLI tools are 
 | `external/tuicr`, `external/herdr` | `herdr` / `tmux` / `zellij` | Recommended | `brew install tmux` *(or `brew install zellij`)* |
 | `external/scientific-figure-making` | `matplotlib`, `numpy` | Required (for plotting) | `pip3 install matplotlib numpy` *(or `uv pip install ...`)* |
 
+#### 🖥️ Interactive TUI Package Installer (RTK-Style)
+
+When you run `k0maru-skills install-deps` (or `./install.sh` in an interactive terminal), a pure-Bash, zero-external-dependency interactive checklist TUI is launched:
+
+- **Navigation**: `↑ / ↓` or `j / k`
+- **Toggle Selection**: `Space` or `← / →`
+- **Toggle All**: `a`
+- **Confirm & Install**: `Enter` (batch installs all selected packages with real-time verification)
+- **Skip / Cancel**: `q` or `Esc`
+
+```text
+┌─────────────────────────────────────────────────────────────┐
+│ 📦 Select Companion Tools to Install (Interactive TUI)      │
+└─────────────────────────────────────────────────────────────┘
+ ❯  [✔] matplotlib & numpy         (external/scientific-figure-making)
+       $ uv pip install matplotlib numpy
+    [✔] tuicr                      (core/code-review, external/tuicr)
+       $ brew install tuicr
+─────────────────────────────────────────────────────────────
+[↑/↓/j/k] Move  [Space/←/→] Toggle  [a] All  [Enter] Install (2)  [q/Esc] Skip
+```
+
+#### 🏷️ Zero-Prefix Design Principle（无前缀设计原则）
+
+Unlike plugins that hardcode namespace prefixes to prevent collision (e.g. `ponytail-audit`), all skills in `k0maru-skills` are synchronized as **first-class citizens** into `~/.gemini/config/skills/`, `~/.claude/skills/`, and `~/.agents/skills/`. You interact directly with concise native slash commands:
+- `/code-review`: OCR delegation pre-scan + AST bundling + tuicr guided walkthrough
+- `/init-agents`: Scaffold standardized project workflow constitution with bot desensitization
+- `/implement`: Isolated subagent ticket execution with auto-review handoff
+- `/grilling`: Pre-implementation architectural stress-testing and decision frontier convergence
+
+No redundant prefix (`k0maru-*`) is needed.
 
 ---
+
 
 ## ⚖️ Credits & Acknowledgements (参考来源与致谢)
 
