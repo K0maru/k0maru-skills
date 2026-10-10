@@ -4,6 +4,7 @@ set -e -u -o pipefail
 # ==============================================================================
 # k0maru-skills Dependency Health Check & Interactive TUI Installer
 # Diagnoses and optionally installs companion CLI tools required by skills.
+# Compatible with macOS (bash 3.2 / zsh) and Linux.
 # ==============================================================================
 
 # Formatting and Colors
@@ -61,6 +62,7 @@ TUI_IDS=()
 TUI_NAMES=()
 TUI_SKILLS=()
 TUI_DESCS=()
+TUI_PREVIEWS=()
 TUI_CMDS=()
 TUI_SELECTED=()
 
@@ -71,8 +73,9 @@ check_cli() {
   local skill="$4"
   local desc="$5"
   local type="$6" # "Recommended", "Optional", "Required"
-  local install_cmd="$7"
-  local version_cmd="${8:-}"
+  local preview_cmd="$7"
+  local install_cmd="$8"
+  local version_cmd="${9:-}"
 
   printf "  %-24s " "$name"
 
@@ -100,6 +103,7 @@ check_cli() {
     TUI_NAMES+=("$name")
     TUI_SKILLS+=("$skill")
     TUI_DESCS+=("$desc")
+    TUI_PREVIEWS+=("$preview_cmd")
     TUI_CMDS+=("$install_cmd")
     if [[ "$type" == "Optional" ]]; then
       TUI_SELECTED+=(0)
@@ -120,6 +124,7 @@ check_cli "ocr" "Open Code Review (ocr)" "ocr" \
   "AST file bundling & language rule delegation" \
   "Recommended" \
   "npm install -g @alibaba-group/open-code-review" \
+  "npm install -g @alibaba-group/open-code-review" \
   "ocr --version | head -n1"
 
 TUICR_INSTALL_CMD="brew install tuicr"
@@ -131,6 +136,7 @@ check_cli "tuicr" "tuicr" "tuicr" \
   "core/code-review, external/tuicr" \
   "Terminal interactive diff walkthrough" \
   "Recommended" \
+  "$TUICR_INSTALL_CMD" \
   "$TUICR_INSTALL_CMD" \
   "tuicr --version"
 
@@ -162,6 +168,7 @@ else
   TUI_NAMES+=("tmux (Multiplexer)")
   TUI_SKILLS+=("external/tuicr, external/herdr")
   TUI_DESCS+=("Side-by-side terminal review pane")
+  TUI_PREVIEWS+=("brew install tmux")
   TUI_CMDS+=("brew install tmux")
   TUI_SELECTED+=(0)
 fi
@@ -173,10 +180,13 @@ check_cli "python3" "Python 3" "python3" \
   "Runtime for scientific figure generation" \
   "Required" \
   "brew install python3" \
+  "brew install python3" \
   "python3 --version"
 
+PY_VIZ_PREVIEW="uv pip install matplotlib numpy (or pip3)"
 PY_VIZ_INSTALL="pip3 install matplotlib numpy"
 if command -v uv >/dev/null 2>&1; then
+  PY_VIZ_PREVIEW="uv pip install matplotlib numpy"
   PY_VIZ_INSTALL="uv pip install --system matplotlib numpy 2>/dev/null || pip3 install matplotlib numpy"
 fi
 
@@ -191,6 +201,7 @@ else
   TUI_NAMES+=("matplotlib & numpy")
   TUI_SKILLS+=("external/scientific-figure-making")
   TUI_DESCS+=("Academic & publication figure making")
+  TUI_PREVIEWS+=("$PY_VIZ_PREVIEW")
   TUI_CMDS+=("$PY_VIZ_INSTALL")
   TUI_SELECTED+=(0)
 fi
@@ -202,12 +213,14 @@ check_cli "git" "Git" "git" \
   "Version control & worktree management" \
   "Required" \
   "brew install git" \
+  "brew install git" \
   "git --version"
 
 check_cli "node" "Node.js / npm" "node" \
   "ocr, setup-pre-commit" \
   "Node runtime for JavaScript/CLI tools" \
   "Recommended" \
+  "brew install node" \
   "brew install node" \
   "node --version"
 
@@ -260,6 +273,7 @@ tput civis 2>/dev/null || true
 cursor=0
 first_draw=true
 lines_per_item=2
+# Header: 3 lines, Separator: 1 line, Footer: 1 line -> 5 non-item lines
 total_draw_lines=$(( num_missing * lines_per_item + 5 ))
 
 while true; do
@@ -268,10 +282,10 @@ while true; do
   fi
   first_draw=false
 
-  # Box Header
-  printf "\033[2K\r%b\n" "${BLUE}${BOLD}┌────────────────────────────────────────────────────────────────────────┐${NC}"
-  printf "\033[2K\r%b\n" "${BLUE}${BOLD}│ 📦 Select Companion Tools to Install (RTK-style Interactive TUI)       │${NC}"
-  printf "\033[2K\r%b\n" "${BLUE}${BOLD}└────────────────────────────────────────────────────────────────────────┘${NC}"
+  # Box Header (width 65, fits 80-col splits without wrapping)
+  printf "\033[2K\r%b\n" "${BLUE}${BOLD}┌─────────────────────────────────────────────────────────────┐${NC}"
+  printf "\033[2K\r%b\n" "${BLUE}${BOLD}│ 📦 Select Companion Tools to Install (Interactive TUI)      │${NC}"
+  printf "\033[2K\r%b\n" "${BLUE}${BOLD}└─────────────────────────────────────────────────────────────┘${NC}"
 
   for i in "${!TUI_IDS[@]}"; do
     prefix="   "
@@ -286,9 +300,9 @@ while true; do
     fi
 
     # Row 1: Checkbox + Name + Target Skill
-    printf "\033[2K\r%b%b %-26s ${DIM}(%s)${NC}\n" "$prefix" "$check" "${TUI_NAMES[$i]}" "${TUI_SKILLS[$i]}"
+    printf "\033[2K\r%b%b %-24s ${DIM}(%s)${NC}\n" "$prefix" "$check" "${TUI_NAMES[$i]}" "${TUI_SKILLS[$i]}"
     # Row 2: Install Command Preview
-    printf "\033[2K\r       ${DIM}$ %s${NC}\n" "${TUI_CMDS[$i]}"
+    printf "\033[2K\r       ${DIM}$ %s${NC}\n" "${TUI_PREVIEWS[$i]}"
   done
 
   # Count selected
@@ -297,8 +311,9 @@ while true; do
     [[ $s -eq 1 ]] && sel_count=$((sel_count + 1))
   done
 
-  printf "\033[2K\r%b\n" "${DIM}──────────────────────────────────────────────────────────────────────────${NC}"
-  printf "\033[2K\r${CYAN}[↑/↓/j/k]${NC} Move  ${CYAN}[Space]${NC} Toggle  ${CYAN}[a]${NC} All  ${GREEN}${BOLD}[Enter]${NC} Install (%d)  ${DIM}[q/Esc]${NC} Skip: " "$sel_count"
+  printf "\033[2K\r%b\n" "${DIM}─────────────────────────────────────────────────────────────${NC}"
+  # Footer line with newline to maintain exact vertical alignment
+  printf "\033[2K\r${CYAN}[↑/↓/j/k]${NC} Move  ${CYAN}[Space/←/→]${NC} Toggle  ${CYAN}[a]${NC} All  ${GREEN}${BOLD}[Enter]${NC} Install (%d)  ${DIM}[q/Esc]${NC} Skip\n" "$sel_count"
 
   # Read key
   key=""
@@ -306,7 +321,8 @@ while true; do
 
   if [[ "$key" == $'\x1b' ]]; then
     rest=""
-    read -rsn2 -t 0.1 rest || true
+    # Integer timeout (-t 1) without decimal point to maintain full macOS bash 3.2 compatibility
+    read -rsn2 -t 1 rest 2>/dev/null || true
     case "$rest" in
       "[A") # Arrow Up
         cursor=$(( (cursor - 1 + num_missing) % num_missing ))
@@ -314,9 +330,18 @@ while true; do
       "[B") # Arrow Down
         cursor=$(( (cursor + 1) % num_missing ))
         ;;
-      "") # Escape key
+      "[C"|"[D") # Arrow Right / Arrow Left -> toggle selection
+        if [[ ${TUI_SELECTED[$cursor]} -eq 1 ]]; then
+          TUI_SELECTED[$cursor]=0
+        else
+          TUI_SELECTED[$cursor]=1
+        fi
+        ;;
+      "") # Solo Escape key pressed
         TUI_SELECTED=()
         break
+        ;;
+      *) # Ignore other unknown escape codes
         ;;
     esac
   elif [[ "$key" == "k" || "$key" == "K" ]]; then
@@ -342,7 +367,7 @@ while true; do
       fi
     done
   elif [[ "$key" == "" ]]; then
-    # Enter key -> confirm selection
+    # Enter key -> confirm selection and run
     break
   elif [[ "$key" == "q" || "$key" == "Q" ]]; then
     TUI_SELECTED=()
