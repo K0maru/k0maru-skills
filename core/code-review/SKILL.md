@@ -43,7 +43,7 @@ ocr delegate rule <changed-file-1> <changed-file-2> ...
 ```
 *Note: If `ocr` is not installed on the system, emulate the grouping and language rules natively.*
 
-### Step 2: Dual-Axis Audit
+### Step 2: Dual-Axis Audit & Invariant Sentinel
 Run focused checks against the diff:
 1. **Standards & Smells**:
    - Apply language-specific rules extracted from `ocr delegate rule`.
@@ -51,6 +51,9 @@ Run focused checks against the diff:
 2. **Spec & Scope**:
    - Verify every requirement in the corresponding issue / ticket DoD is satisfied.
    - Check for accidental scope creep or unrelated file modifications.
+3. **Living ADR Invariants (`k0maru-guard`)**:
+   - Run `k0maru guard check --diff` (or call FastMCP `guard_check`) to audit against active project invariants and ADRs.
+   - Any `deny` severity violation must immediately block PR creation/approval and trigger auto-fix or remediation.
 
 ### Step 3: Executive Summary
 Output a concise briefing card into the main conversation (keep it under 15 lines):

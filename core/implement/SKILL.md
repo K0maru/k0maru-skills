@@ -23,14 +23,16 @@ For each ticket (or coherent batch of work), spawn a dedicated subagent via `inv
 - **Goal & Scope**: State exactly what ticket/feature is being implemented, and explicitly forbid modifying unrelated files.
 - **TDD Requirement**: Use `/tdd` where possible — write tests for boundaries/interfaces first, implement, then verify.
 - **Verification**: Run typechecking (`tsc`, `mypy`, `cargo check`, etc.) and the relevant unit test files until green.
+- **ADR Guard Sentinel**: Run `k0maru guard check --diff` (or call MCP `guard_check`) before committing to ensure no architectural invariants or forbidden patterns are violated.
 - **Commit**: Commit the completed changes with a clear commit message referencing the ticket.
 - **Report**: Return a concise summary of files changed, tests added, and any architectural trade-offs made.
 
 ### Step 3: Orchestrator Verification
 Once the subagent finishes and reports back:
 1. Verify the overall test suite passes on the workspace.
-2. Check for any unexpected scope creep or file modifications (`git status`, `git diff --stat`).
-3. If multiple sequential tickets exist, proceed to dispatch the next ticket's subagent.
+2. Run `k0maru guard check --diff` to audit against Living ADR invariants and architectural boundaries.
+3. Check for any unexpected scope creep or file modifications (`git status`, `git diff --stat`).
+4. If multiple sequential tickets exist, proceed to dispatch the next ticket's subagent.
 
 ### Step 4: Hand Off to Review & Decision Gate
 Once all ticket implementations are complete:
