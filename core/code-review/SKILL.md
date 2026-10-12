@@ -20,16 +20,39 @@ Use this immediately after `/implement` completes work on a ticket/feature branc
 
 ```mermaid
 flowchart TD
-    Diff["Git Changes / Branch Diff"] --> OCR_Delegate["Step 1: OCR Delegation Pre-scan<br/>(ocr delegate preview & rule)"]
+    Diff["Git Changes / Branch Diff"] --> Verifier_Gate["Step 0: Verifier Physical Gate<br/>(k0maru-verifier --review-pack)"]
+    Verifier_Gate -- "❌ Exit Code != 0 / Fail" --> FastReject["🛑 Fail-Fast 物理打回<br/>(零 Token 浪费，拒绝虚假交付)"]
+    Verifier_Gate -- "✅ Success & Signed Receipt" --> OCR_Delegate["Step 1: OCR Delegation Pre-scan<br/>(ocr delegate preview & rule)"]
     OCR_Delegate --> DualAudit["Step 2: Dual-Axis Audit<br/>(Standards & Smells vs Spec & Scope)"]
-    DualAudit --> ExecSummary["Step 3: Executive Summary<br/>(Brief Report in Main Context)"]
+    DualAudit --> ExecSummary["Step 3: Executive Summary<br/>(Brief Report with Signed Receipt)"]
     ExecSummary --> DecisionGate{"Step 4: Interactive Decision Gate<br/>(Ask Human Tech Lead)"}
 
     DecisionGate -->|"1. Directly Submit PR"| SubmitPR["Open / Update Feature Branch PR"]
     DecisionGate -->|"2. Deep Walkthrough"| LaunchTuicr["Launch tuicr in Split Pane (Workflow 2)"]
     DecisionGate -->|"3. Auto-Fix"| AutoFix["Dispatch Subagent to Fix Findings"]
-    DecisionGate -->|"4. Approve & Merge"| MergePR["Mark PR Approved & Merge to dev"]
+    DecisionGate -->|"4. Approve & Merge"| MergePR["Safe Merge via k0maru-workspace<br/>(No-Receipt-No-Merge Gate)"]
 ```
+
+### Step 0: Deterministic Physical Test Oracle Gate (`k0maru-verifier`)
+**Zero Token Waste Iron Law**: Before spending LLM tokens on semantic analysis, OCR rule extraction, or AI-guided walkthroughs, strictly verify the physical execution facts of the target workspace/branch:
+
+1. **Invoke Test Oracle**:
+   ```bash
+   k0maru-verifier --workspace <target_dir> --review-pack
+   ```
+   *(Or inspect existing task receipt via `k0maru-router receipt status <task_id>`)*
+
+2. **Hard Gate Evaluation**:
+   - **❌ Red Light (Exit code != 0 / Tests Fail / Compile Error / Whitelist Violation / Test Deletions)**:
+     - **Fail-Fast Immediate Halt**: Output the exact failure exit code, compilation errors, and failing test assertions.
+     - **Block Review**: Refuse to proceed with semantic review or token expenditure until physical tests and builds pass cleanly.
+     - Prompt developer: *"Gate 1 物理门禁拦截：测试或编译未通过，拒绝无效 Token 消耗。请先修复上述物理报错。"*
+   - **✅ Green Light (`verdict == "success"` & `git_patch_sha256` signed)**:
+     - Ingest the generated `ReviewPack`:
+       - Confirmed tests passed, 0 compiler warnings, 0 clippy warnings.
+       - Immutable test baseline verified.
+       - Signed `git_patch_sha256` checksum recorded.
+     - Proceed immediately to Step 1 (OCR Pre-Scan) and Step 2 (Dual-Axis Semantic Audit).
 
 ### Step 1: OCR Delegation Pre-Scan
 Leverage Open Code Review (`ocr`) in delegation mode (no extra API key needed) to extract file topology and domain-specific rules:
@@ -74,7 +97,11 @@ Actively ask the human developer for their explicit decision before taking irrev
 > 1. **(推荐) 确认无误，直接提交 PR**：由 Bot 在特性分支上提交并创建 Pull Request；
 > 2. **进入 `tuicr` 终端深入交互带读**：在终端右侧分屏启动 `tuicr`，逐行阅读 AI 领读铺设的路标；
 > 3. **自动修复潜在隐患**：派发 Worker Subagent 针对上述发现的问题进行针对性修复并重新运行测试；
-> 4. **(针对已有 PR) 审查通过，批准并合入 `dev`**：标记 PR Review Approved 并完成合并。
+> 4. **(针对已有 PR / 分支) 审查通过，批准并合入 `dev`**：执行物理安全的受保护合并：
+>    ```bash
+>    k0maru-workspace teardown --action merge --worktree <worktree_dir>
+>    ```
+>    *(依托物理级 No-Receipt-No-Merge 门禁，底层强制核验收据与 Git Diff Patch SHA-256 后安全合入主干)*
 
 ---
 
