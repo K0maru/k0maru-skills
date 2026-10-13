@@ -108,14 +108,33 @@ k0maru-router kdsl decode "!δ:0.1|AUTH-SRV|src/auth.ts#v1 §AST:F[verify] @OP:S
 # Atomic write of a task tuple into ~/.k0maru/tuples/
 k0maru-router tuple out --kind TASK_READY --domain AUTH-SRV --task-id t1 --payload "<K-DSL/JSON>"
 
-# Non-destructively inspect matching state
-k0maru-router tuple rd --kind TASK_READY
+# Non-destructively inspect matching state (with optional --wait and --timeout)
+k0maru-router tuple rd --kind TASK_READY --wait --timeout 30
 
-# Atomically claim and consume a task tuple
-k0maru-router tuple in --kind TASK_READY --domain AUTH-SRV
+# Atomically claim and consume a task tuple (reactive blocking wait)
+k0maru-router tuple in --kind TASK_READY --domain AUTH-SRV --wait --timeout 30
 
 # Query all active tuples in the space
 k0maru-router tuple list
+```
+
+### Seam 5: Reactive Worker Loop & Autonomous Lifecycle
+
+```bash
+# 1. Start autonomous reactive worker listening for tasks in domain
+k0maru-router worker --domain AUTH-SRV --once --exec "k0maru-workspace tuple-claim --domain AUTH-SRV"
+
+# 2. Workspace claims TASK_READY, provisions sandbox, and emits SANDBOX_READY
+k0maru-workspace tuple-claim --domain AUTH-SRV
+
+# 3. Verifier runs physical quality gate with K-DSL assertion and emits TASK_VERIFIED or TASK_BLOCKED
+k0maru-verifier verify --workspace ./.worktrees/t1 --task-id t1 --kdsl "!Σ:VERIFY(COMPILE,TEST)"
+
+# 4. Workspace settles task: merges to target on pass or aborts on block, emitting TASK_COMPLETED
+k0maru-workspace tuple-settle --task-id t1
+
+# 5. Memory listens to TASK_COMPLETED and crystallizes outcomes into 01_AI_Logs
+k0maru crystal --vault ~/Documents/SecondBrain --consume
 ```
 
 ---
@@ -123,7 +142,8 @@ k0maru-router tuple list
 ## 🧩 Architectural Invariants & Decoupling
 
 - **Strict Modularity**: Zero static compile-time linkage between the 4 binaries.
-- **File-Bus Driven**: All inter-tool communication occurs via filesystem contracts (`~/.k0maru/signals/`, `~/.k0maru/receipts/`).
+- **File-Bus Driven**: All inter-tool communication occurs via filesystem contracts (`~/.k0maru/tuples/`, `~/.k0maru/receipts/`).
+- **Reactive & Non-blocking**: Uses OS-level file events and atomic file rename locks (`tuple in --wait`) with zero resident daemon overhead.
 - **Optionality (选配)**:
   - If `k0maru-workspace` is missing: Falls back to in-place workspace execution.
   - If `k0maru-verifier` is missing: Skips physical oracle and marks stage as skipped.
