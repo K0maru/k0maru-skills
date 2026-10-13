@@ -24,6 +24,10 @@ A lightweight, daemonless orchestration harness that coordinates end-to-end agen
    - Discrete Signal Bus Emission (`~/.k0maru/signals/`)
    - Memory Hub Crystallization (`k0maru session flush`)
 3. **Decoupled Fallback**: Run tasks in environments where only a subset of tools is installed—the harness will gracefully skip missing optional components without failing.
+4. **Distributed Cross-Node Execution (Tailscale Linux Dispatch)**:
+   - When the user asks to execute on a remote host (e.g., "在公司机器上跑", "去 Linux 机器测试", "发到 GPU 服务器").
+   - When local environment (macOS) lacks Linux-specific toolchains, Docker daemons, or hardware access.
+   - Offload heavy multi-crate compilation or large regression test batches to remote Linux workstations running `tmux` or `herdr`.
 
 ---
 
@@ -49,6 +53,15 @@ k0maru-router pipeline run \
   --verify \
   --emit-signal \
   --crystallize-memory
+
+# 4. Distributed execution on remote Linux PC over Tailscale (tmux or herdr)
+k0maru-router pipeline run \
+  --task-id task_remote_01 \
+  --workspace /home/user/backend \
+  --node company-linux \
+  --remote-backend auto \
+  --verify \
+  --json
 ```
 
 ### Seam 2: MCP Tools (`check_pipeline_health`, `run_e2e_pipeline`)
@@ -57,13 +70,52 @@ k0maru-router pipeline run \
 // Probe health across all 4 pillars:
 check_pipeline_health({})
 
-// Execute automated verification pipeline:
+// Execute automated verification pipeline locally:
 run_e2e_pipeline({
   "task_id": "task_verifier_diff_gate_01",
   "workspace": "/Users/k0maru3/workspace/k0maru-agent-verifier",
   "verify": true,
   "emit_signal": true
 })
+
+// Execute automated verification pipeline on remote node over Tailscale:
+run_e2e_pipeline({
+  "task_id": "task_remote_verification_01",
+  "workspace": "/home/user/backend",
+  "node": "company-linux",
+  "remote_backend": "auto",
+  "verify": true,
+  "emit_signal": true
+})
+```
+
+### Seam 3: Machine-Native Protocol (K-DSL 0.1)
+
+```bash
+# Print machine-native contract to inject into closed-source models (zero prose, pure DSL)
+k0maru-router kdsl contract
+
+# Convert TaskEnvelope JSON to dense 38-token K-DSL packet
+k0maru-router kdsl encode task.json
+
+# Decode K-DSL packet into AST coordinates and operations
+k0maru-router kdsl decode "!δ:0.1|AUTH-SRV|src/auth.ts#v1 §AST:F[verify] @OP:SWAP_ID (a) -> (b) !Σ:VERIFY(TEST)"
+```
+
+### Seam 4: Linda Tuple Space Event Bus (`out / in / rd / list`)
+
+```bash
+# Atomic write of a task tuple into ~/.k0maru/tuples/
+k0maru-router tuple out --kind TASK_READY --domain AUTH-SRV --task-id t1 --payload "<K-DSL/JSON>"
+
+# Non-destructively inspect matching state
+k0maru-router tuple rd --kind TASK_READY
+
+# Atomically claim and consume a task tuple
+k0maru-router tuple in --kind TASK_READY --domain AUTH-SRV
+
+# Query all active tuples in the space
+k0maru-router tuple list
 ```
 
 ---
