@@ -15,6 +15,8 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TARGETS=(
   "$HOME/.agents/skills"
   "$HOME/.gemini/config/skills"
+  "$HOME/.gemini/antigravity-cli/skills"
+  "$HOME/.gemini/skills"
   "$HOME/.claude/skills"
 )
 
