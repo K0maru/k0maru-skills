@@ -25,7 +25,10 @@ k0maru-skills/
 │   ├── code-review/       # Terminal-native tuicr review + AI guided reading (铺路标)
 │   ├── implement/         # Subagent-delegated ticket execution + auto-review handoff
 │   ├── grilling/          # Architectural stress-testing with ADR persistence
-│   └── init-agents/       # Standardized AGENTS.md constitution generator with desensitized Bot attribution
+│   ├── init-agents/       # Standardized AGENTS.md constitution generator with desensitized Bot attribution
+│   ├── k0maru-harness/    # End-to-end Meta-Harness orchestration, JIT recall & Popperian verification
+│   ├── k0maru-guard/      # Living ADR architectural invariant sentinel (<10ms git diff audit)
+│   └── cross-repo-dispatch/ # Autonomous cross-repository defect routing & HITL quarantine
 │
 ├── vendor/                # 🛠️ Curated & Adapted Open-Source Skills
 │   └── mattpocock/        # Filtered from mattpocock/skills (irrelevant teaching skills removed)
@@ -83,6 +86,10 @@ k0maru-skills/
 - **Automatic Stack Detection**: Inspects git branches, linters (`clippy`/`biome`/`ruff`), package managers, and test suites.
 - **Battle-Tested 7-Module Architecture**: Scaffolds `AGENTS.md` with Master-Worker isolation, `/to-spec ➔ /to-tickets ➔ /implement` loop, dual-trunk git branching (`Squash & Merge` into `dev`, `Merge Commit` into `main`), and non-negotiable project iron laws.
 - **Strict Bot Desensitization**: Ensures public configs never leak private Bot User IDs or App IDs, dynamically binding to local `git config --get agent.coauthor`.
+
+### 5. `core/k0maru-harness` & `core/k0maru-guard` (Meta-Harness & Living ADR Sentinel)
+- **`k0maru-harness`**: Orchestrates end-to-end task lifecycles across the decoupled K0maru micro-kernels (`k0maru-router`, `k0maru-verifier`, `k0maru-workspace`, `k0maru-memory`) with `<180 token` JIT invariant activation, pre-stdout log sinking (`!Σ:PIPELINE|...`), and Seen-3× dynamic lesson promotion.
+- **`k0maru-guard`**: Audits working tree and staged Git diffs against active Living ADR invariants in `<10ms` (`k0maru guard check --diff` / `guard_check`), blocking non-compliant commits with actionable `fix_hint` guidance.
 
 ---
 
@@ -158,15 +165,23 @@ When you run `k0maru-skills install-deps` (or `./install.sh` in an interactive t
 [↑/↓/j/k] Move  [Space/←/→] Toggle  [a] All  [Enter] Install (2)  [q/Esc] Skip
 ```
 
-#### 🏷️ Zero-Prefix Design Principle（无前缀设计原则）
+#### 🏷️ Zero-Prefix Design Principle & 5-Target Synchronization（无前缀设计与五端同步）
 
-Unlike plugins that hardcode namespace prefixes to prevent collision (e.g. `ponytail-audit`), all skills in `k0maru-skills` are synchronized as **first-class citizens** into `~/.gemini/config/skills/`, `~/.claude/skills/`, and `~/.agents/skills/`. You interact directly with concise native slash commands:
+Unlike plugins that hardcode namespace prefixes to prevent collision (e.g. `ponytail-audit`), all skills in `k0maru-skills` are synchronized via `scripts/sync.sh` as **first-class citizens** across all **5 target skill directories**:
+1. `~/.agents/skills`
+2. `~/.gemini/config/skills`
+3. `~/.gemini/antigravity-cli/skills`
+4. `~/.gemini/skills`
+5. `~/.claude/skills`
+
+You interact directly with concise native slash commands and core skills:
 - `/code-review`: OCR delegation pre-scan + AST bundling + tuicr guided walkthrough
 - `/init-agents`: Scaffold standardized project workflow constitution with bot desensitization
 - `/implement`: Isolated subagent ticket execution with auto-review handoff
 - `/grilling`: Pre-implementation architectural stress-testing and decision frontier convergence
+- `k0maru-harness` & `k0maru-guard`: End-to-end meta-harness orchestration and Living ADR diff guardrails
 
-No redundant prefix (`k0maru-*`) is needed.
+No redundant prefix is needed for general workflow commands.
 
 ---
 
