@@ -33,7 +33,24 @@ A lightweight, daemonless orchestration harness that coordinates end-to-end agen
 
 ## 🚀 Execution Seams
 
-### Seam 1: CLI (`k0maru-router pipeline` or `k0maru-router e2e`)
+### Seam 0: Top-Level Meta-Harness Porcelain (`k0maru-harness`)
+
+```bash
+# 1. Probe readiness across all 4 pillars and buses (<10ms)
+k0maru-harness probe
+k0maru-harness probe --json
+
+# 2. Just-In-Time (JIT) Experience & Invariant Activation (ExpActivator thesis)
+# Slashing 90% context bloat down to <180 tokens for discrete decision points:
+k0maru-harness memory jit --decision "git branching"
+k0maru-harness memory jit --decision "sqlite lock" --limit 2 --json
+
+# 3. End-to-end task runner & worker loop
+k0maru-harness run "Refactor authentication token" --domain AUTH-SRV --verify
+k0maru-harness worker --domain HARNESS --once
+```
+
+### Seam 1: Legacy Routing & Dispatch CLI (`k0maru-router pipeline` or `k0maru-router e2e`)
 
 ```bash
 # 1. Probe readiness of harness components (<5ms)
